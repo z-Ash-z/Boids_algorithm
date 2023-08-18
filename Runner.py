@@ -2,11 +2,11 @@ from Utils import Boids
 from Utils import Stage
 
 def main() -> None:
-    stage = Stage(750, 750)
+    stage = Stage(1000, 1000)
 
     boids : list[Boids] = list()
 
-    for _ in range(50):
+    for _ in range(100):
         boids.append(Boids(stage.WIDTH, stage.HEIGHT))
 
     while True:

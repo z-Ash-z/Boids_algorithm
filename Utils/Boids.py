@@ -19,7 +19,7 @@ class Boids:
         self.SEPERATION_RADIUS = 20
         self.MAX_ALIGNMENT_FORCE = 0.02
         self.MAX_COHESION_FORCE = 0.025
-        self.MAX_SEPERATION_FORCE = 0.15
+        self.MAX_SEPERATION_FORCE = 0.2
         self.MAX_SPEED = 1.5
 
     def flock(self, boids : list[Boids]):
