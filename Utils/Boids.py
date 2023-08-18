@@ -12,28 +12,42 @@ class Boids:
         self.WIDTH = width
         self.HEIGHT = height
         # self.position = Vector(width // 2, height // 2)
-        self.MAX_SPEED = 1.0
         self.velocity = Vector(random.uniform(-1, 1), random.uniform(-1, 1))
         self.acceleration = Vector()
-        self.PERCEPTION_RADIUS = 100
-        self.MAX_FORCE = 0.02
+        self.ALIGNMENT_RADIUS = 100
+        self.COHESION_RADIUS = 200
+        self.MAX_ALIGNMENT_FORCE = 0.02
+        self.MAX_COHESION_FORCE = 0.025
+        self.MAX_SPEED = 1.0
 
     def flock(self, boids : list[Boids]):
-        steering = Vector()
-        neighbour_count : int = 0
+        alignment = Vector()
+        cohesion = Vector()
+        alignment_neighbour_count : int = 0
+        cohesion_neighbour_count : int = 0
 
         for boid in boids:
             if boid is not self:
                 d = Vector.distance(self.position, boid.position)
-                if d < self.PERCEPTION_RADIUS:
-                    steering.add(boid.velocity)
-                    neighbour_count += 1
-        
-        if neighbour_count > 0:
-            steering.divide(neighbour_count)
+                if d < self.ALIGNMENT_RADIUS:
+                    alignment.add(boid.velocity)
+                    alignment_neighbour_count += 1
+                if d < self.COHESION_RADIUS:
+                    cohesion.add(boid.position)
+                    cohesion_neighbour_count += 1
 
-        steering.limit(self.MAX_FORCE)
-        self.acceleration = steering
+        
+        if alignment_neighbour_count > 0:
+            alignment.divide(alignment_neighbour_count)
+        if cohesion_neighbour_count > 0:
+            cohesion.divide(cohesion_neighbour_count)
+            cohesion.sub(self.position)
+
+        alignment.limit(self.MAX_ALIGNMENT_FORCE)
+        cohesion.limit(self.MAX_COHESION_FORCE)
+        self.acceleration = cohesion + alignment
+
+        print()
 
 
 

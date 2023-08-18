@@ -49,6 +49,24 @@ class Vector():
                 self.x = (self.x + other.x)
                 self.y = (self.y + other.y)
 
+    def sub(self, other) -> None:
+        if not isinstance(other, Vector):
+            if self.__vector_3D:
+                self.x = (self.x - other)
+                self.y = (self.y - other)
+                self.z = (self.z - other)
+            else:
+                self.x = (self.x - other)
+                self.y = (self.y - other)
+        else:
+            if self.__vector_3D:
+                self.x = (self.x - other.x)
+                self.y = (self.y - other.y)
+                self.z = (self.z - other.z)
+            else:
+                self.x = (self.x - other.x)
+                self.y = (self.y - other.y)
+
     def divide(self, other) -> None:
         if not isinstance(other, Vector):
             if self.__vector_3D:
@@ -84,6 +102,15 @@ class Vector():
         if self.__vector_3D:
             return Vector((self.x + other.x), (self.y + other.y), (self.z + other.z))
         return Vector((self.x + other.x), (self.y + other.y))
+    
+    def __sub__(self, other) -> Vector:
+        if not isinstance(other, Vector):
+            if self.__vector_3D:
+                return Vector((self.x - other), (self.y - other), (self.z - other))
+            return Vector((self.x - other), (self.y - other))
+        if self.__vector_3D:
+            return Vector((self.x - other.x), (self.y - other.y), (self.z - other.z))
+        return Vector((self.x - other.x), (self.y - other.y))
     
     def __truediv__(self, other) -> Vector:
         if not isinstance(other, Vector):
