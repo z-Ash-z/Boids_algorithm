@@ -15,12 +15,12 @@ class Boids:
         self.velocity = Vector(random.uniform(-1, 1), random.uniform(-1, 1))
         self.acceleration = Vector()
         self.ALIGNMENT_RADIUS = 100
-        self.COHESION_RADIUS = 300
+        self.COHESION_RADIUS = 200
         self.SEPERATION_RADIUS = 20
         self.MAX_ALIGNMENT_FORCE = 0.02
         self.MAX_COHESION_FORCE = 0.025
-        self.MAX_SEPERATION_FORCE = 0.05
-        self.MAX_SPEED = 1.0
+        self.MAX_SEPERATION_FORCE = 0.15
+        self.MAX_SPEED = 1.5
 
     def flock(self, boids : list[Boids]):
         alignment = Vector()
@@ -57,11 +57,7 @@ class Boids:
         alignment.limit(self.MAX_ALIGNMENT_FORCE)
         cohesion.limit(self.MAX_COHESION_FORCE)
         seperation.limit(self.MAX_SEPERATION_FORCE)
-        self.acceleration = seperation #+ cohesion + alignment
-
-        print()
-
-
+        self.acceleration = seperation + cohesion + alignment
 
     def update(self):
         self.position.add(self.velocity)
