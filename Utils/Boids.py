@@ -12,30 +12,35 @@ class Boids:
         self.WIDTH = width
         self.HEIGHT = height
         # self.position = Vector(width // 2, height // 2)
-        self.MAX_SPEED = 1
+        self.MAX_SPEED = 1.0
         self.velocity = Vector(random.uniform(-1, 1), random.uniform(-1, 1))
         self.acceleration = Vector()
-        self.PERCEPTION_RADIUS = 50
+        self.PERCEPTION_RADIUS = 100
+        self.MAX_FORCE = 0.02
 
     def flock(self, boids : list[Boids]):
-        average = Vector()
+        steering = Vector()
         neighbour_count : int = 0
 
         for boid in boids:
             if boid is not self:
                 d = Vector.distance(self.position, boid.position)
                 if d < self.PERCEPTION_RADIUS:
-                    average.add(boid.velocity)
+                    steering.add(boid.velocity)
                     neighbour_count += 1
         
         if neighbour_count > 0:
-            average.divide(neighbour_count)
+            steering.divide(neighbour_count)
+
+        steering.limit(self.MAX_FORCE)
+        self.acceleration = steering
 
 
 
     def update(self):
         self.position.add(self.velocity)
         self.velocity.add(self.acceleration)
+        self.velocity.limit(self.MAX_SPEED)
         self.__edges()
 
     def __edges(self):

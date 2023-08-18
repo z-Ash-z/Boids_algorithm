@@ -6,7 +6,7 @@ def main() -> None:
 
     boids : list[Boids] = list()
 
-    for _ in range(100):
+    for _ in range(50):
         boids.append(Boids(stage.WIDTH, stage.HEIGHT))
 
     while True:

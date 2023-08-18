@@ -1,79 +1,11 @@
 from __future__ import annotations
 
 import math
-# class Vector2D():
-#     x : float
-#     y : float
-
-#     def __init__(self, x : float, y : float):
-#         """
-#         For a 2D Vector use:
-#         Vector(x=<value>, y=<value>)
-
-#         For a 3D Vector use:
-#         Vector(x=<value>, y=<value>, z=<value>)
-
-#         All the <value>s are float.
-
-#         Returns:
-#             The respective vector object.
-#         """
-#         self.x = x
-#         self.y = x
-#         print(f'Got 2D')
-
-#     def __str__(self) -> str:
-#         return f'x = {self.x}, y = {self.y}'
-    
-#     def __repr__(self) -> str:
-#         return f'{self.x}, {self.y}'
-    
-#     def __neg__(self) -> object:
-#         return Vector2D(x= -self.x, y = -self.y)
-
-#     def __mul__(self):
-#         pass
-    
-
-# class Vector3D():
-#     x : float
-#     y : float
-#     z : float
-
-#     def __init__(self, x : float, y : float, z : float):
-#         """
-#         For a 2D Vector use:
-#         Vector(x=<value>, y=<value>)
-
-#         For a 3D Vector use:
-#         Vector(x=<value>, y=<value>, z=<value>)
-
-#         All the <value>s are float.
-
-#         Returns:
-#             The respective vector object.
-#         """
-#         self.x = x
-#         self.y = y
-#         self.z = z
-#         print(f'Got 3D')
-
-#     def __str__(self) -> str:
-#         return f'x = {self.x}, y = {self.y}, z = {self.z}'
-    
-#     def __repr__(self) -> str:
-#         return f'{self.x}, {self.y}, {self.z}'
-    
-#     def __neg__(self) -> object:
-#         return Vector3D(x = -self.x, y = -self.y, z = -self.z)
     
 
 class Vector():
 
     __vector_3D : bool
-    # x : int
-    # y : int
-    # z : int
     
     def __init__(self, *args) -> None:
         
@@ -134,7 +66,16 @@ class Vector():
             else:
                 self.x = (self.x / other.x)
                 self.y = (self.y / other.y)
-    
+
+    def limit(self, limit : float):
+        if self.__vector_3D:
+            self.x = min(max(self.x, -limit), limit)
+            self.y = min(max(self.y, -limit), limit)
+            self.z = min(max(self.z, -limit), limit)
+        else:
+            self.x = min(max(self.x, -limit), limit)
+            self.y = min(max(self.y, -limit), limit)
+
     def __add__(self, other) -> Vector:
         if not isinstance(other, Vector):
             if self.__vector_3D:
