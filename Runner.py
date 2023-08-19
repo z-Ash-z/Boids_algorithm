@@ -14,7 +14,7 @@ def main() -> None:
             boid.flock(boids)
             boid.update()
             stage.drawBoid(boid)
-        stage.show()
+        stage.show("Boids Algorithm")
 
 if __name__ == '__main__':
     main()
