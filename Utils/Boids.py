@@ -84,7 +84,10 @@ class Boids:
         seperation.limit(self.MAX_SEPERATION_FORCE)
 
         # Calculating the acceleration 
-        self.acceleration = seperation + cohesion + alignment
+        # self.acceleration = seperation + cohesion + alignment
+        cohesion.add(alignment)
+        seperation.add(cohesion)
+        self.acceleration = seperation
 
     def update(self):
         """
