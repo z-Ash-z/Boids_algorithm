@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-import typing
+import copy
 
 from .Vector import Vector
 
@@ -46,7 +46,7 @@ class Boids:
         seperation_neighbour_count : int = 0
 
         for boid in boids:
-            if boid is not self:
+            if not self.same(boid):
                 d = Vector.distance(self.position, boid.position)
 
                 # Using distance for alignment force.
@@ -113,9 +113,43 @@ class Boids:
         elif (self.position.y <= 0):
             self.position.y = self.HEIGHT
 
+    def same(self, other : Boids) -> bool:
+        """
+        Tells if the two boids are same.
+
+        Args:
+            other: The other boid
+
+        Returns:
+            True, if same.
+        """
+        return (self.position == other.position)
+
     @staticmethod
-    def get_positions(boids : list[Boids]) -> typing.List[typing.Tuple[float, float]]:
+    def getPositions(boids : list[Boids]) -> list[tuple[float, float]]:
+        """
+        A method that returns the list of positions of the boids.
+
+        Args:
+            boids: A list of boids.
+
+        Returns:
+            A list of the positions of the boids.
+        """
         return [(boid.position.x, boid.position.y) for boid in boids]
+    
+    @staticmethod
+    def getCopy(boids: list[Boids]) -> list[Boids]:
+        """
+        To make a deepcopy of the boids.
+
+        Args:
+            boids: A list of boids.
+
+        Returns:
+            The deepcopy of the boids.
+        """
+        return copy.deepcopy(boids)
 
 def main() -> None:
     pass
