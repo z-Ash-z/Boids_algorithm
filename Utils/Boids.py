@@ -30,7 +30,7 @@ class Boids:
         self.MAX_SEPERATION_FORCE = 0.1
         self.MAX_SPEED = 1.0
 
-    def flock(self, boids : list[Boids]):
+    def flock(self, boids : list[Boids]) -> None:
         """
         Uses alignment, cohesion and seperation properties of the Boids algorithm to flock all the Boids in the stage.
 
@@ -89,7 +89,7 @@ class Boids:
         seperation.add(cohesion)
         self.acceleration = seperation
 
-    def update(self):
+    def update(self) -> None:
         """
         The update method that updates the position of the boid based on the calculated acceleration.
         """
@@ -98,7 +98,7 @@ class Boids:
         self.velocity.limit(self.MAX_SPEED)
         self.__edges()
 
-    def __edges(self):
+    def __edges(self) -> None:
         """
         The method that wraps the position of the boid back to the stage, if the position crosses the stage.
         """
