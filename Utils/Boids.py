@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+import typing
 
 from .Vector import Vector
 
@@ -111,6 +112,10 @@ class Boids:
             self.position.y = 0
         elif (self.position.y <= 0):
             self.position.y = self.HEIGHT
+
+    @staticmethod
+    def get_positions(boids : list[Boids]) -> typing.List[typing.Tuple[float, float]]:
+        return [(boid.position.x, boid.position.y) for boid in boids]
 
 def main() -> None:
     pass
