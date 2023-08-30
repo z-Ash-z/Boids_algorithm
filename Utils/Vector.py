@@ -331,6 +331,32 @@ class Vector():
             return Vector(-self.x, -self.y, -self.z)
         return Vector(-self.x, -self.y)
     
+    def __eq__(self, other) -> bool:
+        """
+        Operation for '=='.
+
+        Args:
+            other: The other vector.
+
+        Returns:
+            True, if the x, y, z are a match.
+        """
+        if self.__vector_3D:
+            return ((self.x == other.x) and (self.y == other.y) and (self.z == other.z))
+        return ((self.x == other.x) and (self.y == other.y))
+    
+    def __ne__(self, other) -> bool:
+        """
+        Operation for '!='.
+
+        Args:
+            other: The other vector.
+
+        Returns:
+            True, if the x, y, z are not a match.
+        """
+        return not (self == other)
+    
     @staticmethod
     def distance(first : Vector, second : Vector) -> float:
         """
