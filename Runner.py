@@ -1,14 +1,15 @@
 import time
 import threading
+import concurrent.futures
 
 from Utils import Boids
 from Utils import Stage
 
 
-def consolidate(boid, boids, stage) -> None:
+def consolidate(boid, boids) -> None:
     boid.flock(boids)
     boid.update()
-    stage.drawBoid(boid)
+    # stage.drawBoid(boid)
 
 def main() -> None:
     stage = Stage(1000, 1000)
@@ -20,19 +21,24 @@ def main() -> None:
     
     start_time = time.perf_counter()
 
-    for _ in range(1_000):
+    for _ in range(1):
         
-        threads = list()
+        # threads = list()
 
-        for boid in boids:
-            thread = threading.Thread(target=consolidate, args=(boid, boids, stage))   
-            threads.append(thread)
+        # for boid in boids:
+        #     thread = threading.Thread(target=consolidate, args=(boid, boids, stage))   
+        #     threads.append(thread)
 
-        for thread in threads:
-            thread.start()
+        # for thread in threads:
+        #     thread.start()
 
-        for thread in threads:
-            thread.join()
+        # for thread in threads:
+        #     thread.join()
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            for boid in boids:
+                executor.submit(consolidate, boid, boids)
+                stage.drawBoid(boid)
+
         stage.show("Boids Algorithm")
 
     end_time = time.perf_counter()
