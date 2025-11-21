@@ -1,10 +1,10 @@
 import time
 from Utils import Boids
-from Utils import Stage
+from Utils.StagePygame import StagePygame
 
 
 def main() -> None:
-    stage = Stage(1000, 1000)
+    stage = StagePygame(1000, 1000)
 
     # Initialize Boids manager with 100 boids
     boids = Boids(100, stage.WIDTH, stage.HEIGHT)

@@ -52,14 +52,59 @@ class Stage:
 
     def drawBoids(self, boids : Boids) -> None:
         """
-        Draws the boids on the window.
+        Draws the boids on the window as triangles.
 
         Args:
             boids: The boids manager containing all boids.
         """
+        # Clear the stage
+        self.__stage.fill(0)
+        
         positions = boids.get_positions()
-        for x, y in positions:
-            cv2.circle(self.__stage, (int(x), int(y)), 5, (255, 255, 255), -1)
+        velocities = boids.velocities
+        
+        # Calculate angles
+        angles = np.arctan2(velocities[:, 1], velocities[:, 0])
+        c = np.cos(angles)
+        s = np.sin(angles)
+        
+        # Define offsets for the triangle vertices (N, 2)
+        # Tip: (10, 0) -> (10c, 10s)
+        tip_x = 10 * c
+        tip_y = 10 * s
+        
+        # Back Left: (-5, 5) -> (-5c - 5s, -5s + 5c)
+        bl_x = -5 * c - 5 * s
+        bl_y = -5 * s + 5 * c
+        
+        # Back Right: (-5, -5) -> (-5c + 5s, -5s - 5c)
+        br_x = -5 * c + 5 * s
+        br_y = -5 * s - 5 * c
+        
+        # Stack coordinates: (N, 3, 2)
+        # We construct the x and y coordinates for all 3 vertices
+        # Triangle 1: [tip_x[0], tip_y[0]], [bl_x[0], bl_y[0]], [br_x[0], br_y[0]]
+        
+        # Create (N, 3, 2) array of offsets
+        offsets = np.zeros((len(positions), 3, 2))
+        offsets[:, 0, 0] = tip_x
+        offsets[:, 0, 1] = tip_y
+        offsets[:, 1, 0] = bl_x
+        offsets[:, 1, 1] = bl_y
+        offsets[:, 2, 0] = br_x
+        offsets[:, 2, 1] = br_y
+        
+        # Add positions to offsets
+        # positions is (N, 2) -> expand to (N, 1, 2) for broadcasting
+        vertices = (offsets + positions[:, np.newaxis, :]).astype(np.int32)
+        
+        # cv2.fillPoly expects a list of points, but we can pass the array directly
+        # if it's in the right format. It expects a list of arrays.
+        # We can convert the (N, 3, 2) array to a list of (3, 2) arrays?
+        # Actually, fillPoly is fast but the list conversion might be slow.
+        # Let's try passing the list of arrays.
+        
+        cv2.fillPoly(self.__stage, list(vertices), (255, 255, 255))
 
 
 def main() -> None:

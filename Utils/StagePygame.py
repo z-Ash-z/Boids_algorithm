@@ -13,12 +13,44 @@ class StagePygame:
     def drawBoids(self, boids: Boids) -> None:
         self.screen.fill((0, 0, 0))  # Clear screen
         positions = boids.get_positions()
+        velocities = boids.velocities # Access velocities directly
         
-        # Pygame drawing is often faster if we don't iterate in python, but 
-        # pygame.draw.circle doesn't support vectorized inputs directly.
-        # We have to iterate.
-        for x, y in positions:
-            pygame.draw.circle(self.screen, (255, 255, 255), (int(x), int(y)), 5)
+        # Triangle geometry (relative to center, pointing right)
+        # Tip at (10, 0), Back corners at (-5, 5) and (-5, -5)
+        # We will rotate this based on velocity angle
+        
+        for i in range(len(positions)):
+            x, y = positions[i]
+            vx, vy = velocities[i]
+            
+            # Calculate angle
+            angle = np.arctan2(vy, vx)
+            
+            # Rotation matrix components
+            c = np.cos(angle)
+            s = np.sin(angle)
+            
+            # Define vertices relative to (0,0)
+            # Tip
+            tip_x = 10 * c - 0 * s
+            tip_y = 10 * s + 0 * c
+            
+            # Back Left (-5, 5)
+            bl_x = -5 * c - 5 * s
+            bl_y = -5 * s + 5 * c
+            
+            # Back Right (-5, -5)
+            br_x = -5 * c - (-5) * s
+            br_y = -5 * s + (-5) * c
+            
+            # Translate to position
+            vertices = [
+                (x + tip_x, y + tip_y),
+                (x + bl_x, y + bl_y),
+                (x + br_x, y + br_y)
+            ]
+            
+            pygame.draw.polygon(self.screen, (255, 255, 255), vertices)
 
     def show(self, window_name: str = "Stage") -> None:
         pygame.display.set_caption(window_name)
