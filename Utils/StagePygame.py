@@ -55,7 +55,3 @@ class StagePygame:
     def show(self, window_name: str = "Stage") -> None:
         pygame.display.set_caption(window_name)
         pygame.display.flip()
-        # Handle events to prevent freezing
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                exit(0)

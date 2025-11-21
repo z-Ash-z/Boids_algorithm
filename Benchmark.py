@@ -34,6 +34,11 @@ def run_pygame(num_boids=100, steps=500):
         boids.update()
         stage.drawBoids(boids)
         stage.show("Pygame Benchmark")
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return 0.0
     
     pygame.quit()
     duration = time.perf_counter() - start_time
