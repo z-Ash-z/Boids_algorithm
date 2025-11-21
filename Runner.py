@@ -5,9 +5,9 @@ from Utils.StagePygame import StagePygame
 
 
 def main() -> None:
-    stage = StagePygame(1000, 1000)
+    stage = StagePygame(fullscreen=False)
 
-    # Initialize Boids manager with 1000 boids
+    # Initialize Boids manager with 500 boids
     boids = Boids(500, stage.WIDTH, stage.HEIGHT)
     
     start_time = time.perf_counter()
@@ -20,6 +20,11 @@ def main() -> None:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                     running = False
+            elif event.type == pygame.VIDEORESIZE:
+                width, height = event.w, event.h
+                stage.resize(width, height)
+                boids.WIDTH = width
+                boids.HEIGHT = height
 
         boids.flock()
         boids.update()

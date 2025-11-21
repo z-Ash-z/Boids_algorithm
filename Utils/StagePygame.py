@@ -3,12 +3,23 @@ import numpy as np
 from .Boids import Boids
 
 class StagePygame:
-    def __init__(self, x: int = 500, y: int = 500) -> None:
+    def __init__(self, width: int = 500, height: int = 500, fullscreen: bool = False) -> None:
         pygame.init()
-        self.WIDTH = x
-        self.HEIGHT = y
-        self.screen = pygame.display.set_mode((x, y))
+        if fullscreen:
+            # (0, 0) with FULLSCREEN uses the current desktop resolution
+            self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            self.WIDTH, self.HEIGHT = self.screen.get_size()
+        else:
+            self.WIDTH = width
+            self.HEIGHT = height
+            self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+            
         self.clock = pygame.time.Clock()
+
+    def resize(self, width: int, height: int) -> None:
+        self.WIDTH = width
+        self.HEIGHT = height
+        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 
     def drawBoids(self, boids: Boids) -> None:
         self.screen.fill((0, 0, 0))  # Clear screen
