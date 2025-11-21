@@ -87,6 +87,9 @@ class Boids:
         with np.errstate(divide='ignore', invalid='ignore'):
             weighted_diff = diff / dist[:, :, np.newaxis]
         
+        # Handle potential NaNs/Infs from 0 distance
+        weighted_diff = np.nan_to_num(weighted_diff)
+        
         # Sum weighted diffs for neighbors
         # weighted_diff: (N, N, 2), mask_sep: (N, N) -> expand to (N, N, 1)
         sep_sum = (weighted_diff * mask_sep[:, :, np.newaxis]).sum(axis=1)

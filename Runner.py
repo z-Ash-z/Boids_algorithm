@@ -6,8 +6,8 @@ from Utils.StagePygame import StagePygame
 def main() -> None:
     stage = StagePygame(1000, 1000)
 
-    # Initialize Boids manager with 100 boids
-    boids = Boids(100, stage.WIDTH, stage.HEIGHT)
+    # Initialize Boids manager with 1000 boids
+    boids = Boids(500, stage.WIDTH, stage.HEIGHT)
     
     start_time = time.perf_counter()
 
