@@ -50,14 +50,16 @@ class Stage:
         
         self.__resetCanvas()
 
-    def drawBoid(self, boid : Boids) -> None:
+    def drawBoids(self, boids : Boids) -> None:
         """
         Draws the boids on the window.
 
         Args:
-            boid: The boid that needs to be drawn.
+            boids: The boids manager containing all boids.
         """
-        cv2.circle(self.__stage, (int(boid.position.x), int(boid.position.y)), 5, (255, 255, 255), -1)
+        positions = boids.get_positions()
+        for x, y in positions:
+            cv2.circle(self.__stage, (int(x), int(y)), 5, (255, 255, 255), -1)
 
 
 def main() -> None:

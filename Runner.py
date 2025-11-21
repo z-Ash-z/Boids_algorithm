@@ -1,53 +1,20 @@
 import time
-import threading
-import concurrent.futures
-import typing
-
 from Utils import Boids
 from Utils import Stage
 
 
-def consolidate(boid : Boids, boids : typing.List[Boids], stage : Stage) -> None:
-    boid.flock(boids)
-    boid.update()
-    stage.drawBoid(boid)
-
 def main() -> None:
     stage = Stage(1000, 1000)
 
-    boids : list[Boids] = list()
-
-    for _ in range(1_00):
-        boids.append(Boids(stage.WIDTH, stage.HEIGHT))
+    # Initialize Boids manager with 100 boids
+    boids = Boids(100, stage.WIDTH, stage.HEIGHT)
     
     start_time = time.perf_counter()
 
-    for _ in range(1_000):
-        
-        threads = list()
-
-        positions = Boids.getCopy(boids)
-
-        # for boid in boids:
-        #     # consolidate(boid, positions, stage)
-        #     thread = threading.Thread(target=consolidate, args=(boid, positions, stage))   
-        #     threads.append(thread)
-
-        # for thread in threads:
-        #     thread.start()
-
-        # for thread in threads:
-        #     thread.join()
-        # with concurrent.futures.ProcessPoolExecutor() as executor:
-        #     for boid in boids:
-        #         executor.submit(consolidate, boid, positions, stage)
-        #     executor.shutdown(wait = True)
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            for boid in boids:
-                executor.submit(consolidate, boid, positions, stage)
-            executor.shutdown(wait = True)
-
+    for _ in range(1000):
+        boids.flock()
+        boids.update()
+        stage.drawBoids(boids)
         stage.show("Boids Algorithm")
 
     end_time = time.perf_counter()

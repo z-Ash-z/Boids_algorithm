@@ -1,158 +1,135 @@
 from __future__ import annotations
-
-import random
-import copy
-
-from .Vector import Vector
-
+import numpy as np
 
 class Boids:
     
-    def __init__(self, width : int, height : int) -> None:
+    def __init__(self, num_boids: int, width: int, height: int) -> None:
         """
-        The Boids class, initialize it with the stage's width and height.
-        This class takes care of the flocking characteristic of the individual boid.
-
+        The Boids class that manages all boids using NumPy for optimized performance.
+        
         Args:
+            num_boids: The number of boids to simulate.
             width: The width of the stage in pixels.
-            height: The heigth of the stage in pixels.
+            height: The height of the stage in pixels.
         """
-        self.position = Vector(int(random.random() * width), int(random.random() * height))
+        self.num_boids = num_boids
         self.WIDTH = width
         self.HEIGHT = height
-        # self.position = Vector(width // 2, height // 2)
-        self.velocity = Vector(random.uniform(-1, 1), random.uniform(-1, 1))
-        self.acceleration = Vector()
+        
+        # Initialize positions, velocities, and accelerations
+        self.positions = np.random.rand(num_boids, 2) * np.array([width, height])
+        self.velocities = np.random.uniform(-1, 1, (num_boids, 2))
+        self.accelerations = np.zeros((num_boids, 2))
+        
+        # Constants
         self.ALIGNMENT_RADIUS = 100
         self.COHESION_RADIUS = 200
         self.SEPERATION_RADIUS = 20
+        
         self.MAX_ALIGNMENT_FORCE = 0.01
         self.MAX_COHESION_FORCE = 0.015
         self.MAX_SEPERATION_FORCE = 0.1
         self.MAX_SPEED = 1.0
 
-    def flock(self, boids : list[Boids]) -> None:
+    def flock(self) -> None:
         """
-        Uses alignment, cohesion and seperation properties of the Boids algorithm to flock all the Boids in the stage.
-
-        Args:
-            boids: The list of boids on the stage.
+        Uses alignment, cohesion and separation properties to update accelerations for all boids.
         """
-        alignment = Vector()        # The vector that takes care of the alignment.
-        cohesion = Vector()         # The vector that takes care of the cohesion. 
-        seperation = Vector()       # The vector that takes care of the seperation.
-        alignment_neighbour_count : int = 0
-        cohesion_neighbour_count : int = 0
-        seperation_neighbour_count : int = 0
-
-        for boid in boids:
-            if not self.same(boid):
-                d = Vector.distance(self.position, boid.position)
-
-                # Using distance for alignment force.
-                if d < self.ALIGNMENT_RADIUS:
-                    alignment.add(boid.velocity)
-                    alignment_neighbour_count += 1
-
-                # Using distance for cohesion force.
-                if d < self.COHESION_RADIUS:
-                    cohesion.add(boid.position)
-                    cohesion_neighbour_count += 1
-
-                # Using distance for seperation force.
-                if d < self.SEPERATION_RADIUS:
-                    diff : Vector = self.position - boid.position
-                    diff.divide(d)
-                    seperation.add(diff)
-                    seperation_neighbour_count += 1
-
-        # Calculating alignemnt force.
-        if alignment_neighbour_count > 0:
-            alignment.divide(alignment_neighbour_count)
+        # Reset accelerations
+        self.accelerations = np.zeros_like(self.positions)
         
-        # Calculating the cohesion force.
-        if cohesion_neighbour_count > 0:
-            cohesion.divide(cohesion_neighbour_count)
-            cohesion.sub(self.position)
-
-        # Calculating the seperation force.
-        if seperation_neighbour_count > 0:
-            seperation.divide(seperation_neighbour_count)
-
-        # Limiting the calculated forces with the set thresholds.
-        alignment.limit(self.MAX_ALIGNMENT_FORCE)
-        cohesion.limit(self.MAX_COHESION_FORCE)
-        seperation.limit(self.MAX_SEPERATION_FORCE)
-
-        # Calculating the acceleration 
-        # self.acceleration = seperation + cohesion + alignment
-        cohesion.add(alignment)
-        seperation.add(cohesion)
-        self.acceleration = seperation
+        # Calculate distance matrix (N, N)
+        # Using broadcasting: (N, 1, 2) - (1, N, 2) -> (N, N, 2)
+        pos = self.positions
+        diff = pos[:, np.newaxis, :] - pos[np.newaxis, :, :]
+        dist = np.linalg.norm(diff, axis=2)
+        
+        # Avoid self-interaction by setting diagonal to infinity
+        np.fill_diagonal(dist, np.inf)
+        
+        # --- Alignment ---
+        # Average velocity of neighbors within radius
+        mask_align = dist < self.ALIGNMENT_RADIUS
+        counts_align = mask_align.sum(axis=1, keepdims=True)
+        
+        # Sum velocities of neighbors: (N, N) @ (N, 2) -> (N, 2)
+        align_sum = mask_align @ self.velocities
+        
+        # Calculate average and apply limit
+        alignment = np.zeros_like(self.velocities)
+        np.divide(align_sum, counts_align, out=alignment, where=counts_align > 0)
+        alignment = self._limit_vector(alignment, self.MAX_ALIGNMENT_FORCE)
+        
+        # --- Cohesion ---
+        # Steer towards average position of neighbors
+        mask_coh = dist < self.COHESION_RADIUS
+        counts_coh = mask_coh.sum(axis=1, keepdims=True)
+        
+        coh_sum = mask_coh @ self.positions
+        
+        cohesion = np.zeros_like(self.positions)
+        np.divide(coh_sum, counts_coh, out=cohesion, where=counts_coh > 0)
+        
+        # Steer towards target (average pos) - current pos
+        # Only apply if we have neighbors (where counts > 0)
+        has_neighbors_coh = counts_coh.flatten() > 0
+        cohesion[has_neighbors_coh] -= self.positions[has_neighbors_coh]
+        
+        cohesion = self._limit_vector(cohesion, self.MAX_COHESION_FORCE)
+        
+        # --- Separation ---
+        # Steer away from neighbors: sum((self_pos - other_pos) / dist)
+        mask_sep = dist < self.SEPERATION_RADIUS
+        counts_sep = mask_sep.sum(axis=1, keepdims=True)
+        
+        # diff is (self - other). We want to normalize by distance.
+        # Avoid division by zero (inf in dist)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            weighted_diff = diff / dist[:, :, np.newaxis]
+        
+        # Sum weighted diffs for neighbors
+        # weighted_diff: (N, N, 2), mask_sep: (N, N) -> expand to (N, N, 1)
+        sep_sum = (weighted_diff * mask_sep[:, :, np.newaxis]).sum(axis=1)
+        
+        separation = np.zeros_like(self.positions)
+        np.divide(sep_sum, counts_sep, out=separation, where=counts_sep > 0)
+        
+        separation = self._limit_vector(separation, self.MAX_SEPERATION_FORCE)
+        
+        # --- Combine Forces ---
+        # Original logic: acceleration = separation + cohesion + alignment
+        # Note: The original code accumulated them:
+        # cohesion.add(alignment)
+        # seperation.add(cohesion)
+        # self.acceleration = seperation
+        # So it is indeed the sum.
+        
+        self.accelerations = alignment + cohesion + separation
 
     def update(self) -> None:
         """
-        The update method that updates the position of the boid based on the calculated acceleration.
+        Update positions based on velocity and acceleration.
         """
-        self.position.add(self.velocity)
-        self.velocity.add(self.acceleration)
-        self.velocity.limit(self.MAX_SPEED)
-        self.__edges()
+        self.velocities += self.accelerations
+        self.velocities = self._limit_vector(self.velocities, self.MAX_SPEED)
+        self.positions += self.velocities
+        self._edges()
 
-    def __edges(self) -> None:
+    def _edges(self) -> None:
         """
-        The method that wraps the position of the boid back to the stage, if the position crosses the stage.
+        Wrap positions around the stage edges.
         """
-        if (self.position.x >= self.WIDTH):
-            self.position.x = 0
-        elif (self.position.x <= 0):
-            self.position.x = self.WIDTH
-        
-        if (self.position.y >= self.HEIGHT):
-            self.position.y = 0
-        elif (self.position.y <= 0):
-            self.position.y = self.HEIGHT
+        self.positions[:, 0] = np.where(self.positions[:, 0] >= self.WIDTH, 0, self.positions[:, 0])
+        self.positions[:, 0] = np.where(self.positions[:, 0] <= 0, self.WIDTH, self.positions[:, 0])
+        self.positions[:, 1] = np.where(self.positions[:, 1] >= self.HEIGHT, 0, self.positions[:, 1])
+        self.positions[:, 1] = np.where(self.positions[:, 1] <= 0, self.HEIGHT, self.positions[:, 1])
 
-    def same(self, other : Boids) -> bool:
+    def _limit_vector(self, vectors: np.ndarray, limit: float) -> np.ndarray:
         """
-        Tells if the two boids are same.
-
-        Args:
-            other: The other boid
-
-        Returns:
-            True, if same.
+        Limit the components of vectors to [-limit, limit].
+        Matches the original Vector.limit behavior (component-wise clamping).
         """
-        return (self.position == other.position)
+        return np.clip(vectors, -limit, limit)
 
-    @staticmethod
-    def getPositions(boids : list[Boids]) -> list[tuple[float, float]]:
-        """
-        A method that returns the list of positions of the boids.
-
-        Args:
-            boids: A list of boids.
-
-        Returns:
-            A list of the positions of the boids.
-        """
-        return [(boid.position.x, boid.position.y) for boid in boids]
-    
-    @staticmethod
-    def getCopy(boids: list[Boids]) -> list[Boids]:
-        """
-        To make a deepcopy of the boids.
-
-        Args:
-            boids: A list of boids.
-
-        Returns:
-            The deepcopy of the boids.
-        """
-        return copy.deepcopy(boids)
-
-def main() -> None:
-    pass
-
-if __name__ == '__main__':
-    main()
+    def get_positions(self) -> np.ndarray:
+        return self.positions
