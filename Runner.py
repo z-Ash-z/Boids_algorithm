@@ -39,9 +39,9 @@ def main() -> None:
     
     # --- Simulation UI ---
     # Sliders for Alignment, Cohesion, Separation (Reynolds Steering)
-    slider_align = Slider(20, 20, 200, 20, 0.0, 0.20, 0.05, "Alignment")
-    slider_coh = Slider(20, 60, 200, 20, 0.0, 0.20, 0.04, "Cohesion")
-    slider_sep = Slider(20, 100, 200, 20, 0.0, 0.50, 0.12, "Separation")
+    slider_align = Slider(20, 20, 200, 20, 0.0, 0.20, 0.045, "Alignment")
+    slider_coh = Slider(20, 60, 200, 20, 0.0, 0.20, 0.03, "Cohesion")
+    slider_sep = Slider(20, 100, 200, 20, 0.0, 0.50, 0.20, "Separation")
     # FPS Slider: 10 to 120 FPS, default 60 (integer)
     slider_fps = Slider(20, 140, 200, 20, 10, 120, 60, "Max FPS", is_int=True)
     

@@ -41,12 +41,12 @@ class Boids:
         
         # Flocking perception & force parameters (Reynolds Steering)
         self.ALIGNMENT_RADIUS = 100.0
-        self.COHESION_RADIUS = 180.0
-        self.SEPERATION_RADIUS = 35.0
+        self.COHESION_RADIUS = 150.0
+        self.SEPERATION_RADIUS = 32.0
         
-        self.MAX_ALIGNMENT_FORCE = 0.05
-        self.MAX_COHESION_FORCE = 0.04
-        self.MAX_SEPERATION_FORCE = 0.12
+        self.MAX_ALIGNMENT_FORCE = 0.045
+        self.MAX_COHESION_FORCE = 0.03
+        self.MAX_SEPERATION_FORCE = 0.20
         
         # Aerodynamic speed limits
         self.MIN_SPEED = 1.5
@@ -146,12 +146,12 @@ class Boids:
         steer_coh = xp.where(counts_coh > 0, desired_coh - vel, 0.0)
         steer_coh = self._limit_magnitude(xp, steer_coh, self.MAX_COHESION_FORCE)
         
-        # --- Separation (Reynolds Steering: smooth inverse-distance repulsion) ---
+        # --- Separation (Reynolds Steering: smooth boundary falloff + close-range repulsion) ---
         # Separation checks 360 degrees to prevent rear/blind-spot collisions
         mask_sep = (dist < self.SEPERATION_RADIUS) & (dist > 1e-4)
         counts_sep = mask_sep.sum(axis=1, keepdims=True)
-        # Weight force smoothly by inverse distance: 1 / max(dist, 0.01)
-        inv_dist_weight = xp.where(mask_sep, 1.0 / xp.maximum(dist, 1e-2), 0.0)
+        # Smooth falloff: (1 - d/R) / d ensures force gracefully decays to 0 at boundary
+        inv_dist_weight = xp.where(mask_sep, (1.0 - dist / self.SEPERATION_RADIUS) / xp.maximum(dist, 1.0), 0.0)
         repel_force = (diff * inv_dist_weight[:, :, None]).sum(axis=1)
         repel_mag = xp.linalg.norm(repel_force, axis=1, keepdims=True)
         desired_sep = (repel_force / xp.maximum(repel_mag, 1e-6)) * self.MAX_SPEED
