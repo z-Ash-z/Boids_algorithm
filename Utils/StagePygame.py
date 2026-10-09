@@ -25,7 +25,7 @@ class StagePygame:
         self.screen.fill((0, 0, 0))  # Clear screen
         
         positions = boids.get_positions()
-        velocities = boids.velocities
+        velocities = boids.get_velocities()
         
         # Vectorized angle calculation
         angles = np.arctan2(velocities[:, 1], velocities[:, 0])
@@ -58,11 +58,11 @@ class StagePygame:
         vertices = offsets + positions[:, np.newaxis, :]
         
         # Draw polygons
-        # We still need to iterate because pygame.draw.polygon draws one polygon at a time
-        # But the math is now done in C (NumPy)
         for v in vertices:
             pygame.draw.polygon(self.screen, (255, 255, 255), v)
 
     def show(self, window_name: str = "Stage") -> None:
-        pygame.display.set_caption(window_name)
+        if getattr(self, '_last_caption', None) != window_name:
+            pygame.display.set_caption(window_name)
+            self._last_caption = window_name
         pygame.display.flip()

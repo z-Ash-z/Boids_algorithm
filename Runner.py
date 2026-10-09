@@ -38,13 +38,12 @@ def main() -> None:
     start_btn = Button(cx - 100, cy + 20, 200, 50, "Start Simulation", start_sim)
     
     # --- Simulation UI ---
-    # Sliders for Alignment, Cohesion, Separation
-    # Range: 0.0 to 0.1 (approx)
-    slider_align = Slider(20, 20, 200, 20, 0.0, 0.05, 0.01, "Alignment")
-    slider_coh = Slider(20, 60, 200, 20, 0.0, 0.05, 0.015, "Cohesion")
-    slider_sep = Slider(20, 100, 200, 20, 0.0, 0.5, 0.1, "Separation")
-    # FPS Slider: 10 to 120 FPS, default 60
-    slider_fps = Slider(20, 140, 200, 20, 10, 120, 60, "Max FPS")
+    # Sliders for Alignment, Cohesion, Separation (Reynolds Steering)
+    slider_align = Slider(20, 20, 200, 20, 0.0, 0.20, 0.05, "Alignment")
+    slider_coh = Slider(20, 60, 200, 20, 0.0, 0.20, 0.04, "Cohesion")
+    slider_sep = Slider(20, 100, 200, 20, 0.0, 0.50, 0.12, "Separation")
+    # FPS Slider: 10 to 120 FPS, default 60 (integer)
+    slider_fps = Slider(20, 140, 200, 20, 10, 120, 60, "Max FPS", is_int=True)
     
     def back_to_menu():
         nonlocal current_state
@@ -99,10 +98,17 @@ def main() -> None:
             title_rect = title.get_rect(center=(stage.WIDTH//2, stage.HEIGHT//2 - 150))
             stage.screen.blit(title, title_rect)
             
+            # Draw Device Info
+            sub_font = pygame.font.Font(None, 24)
+            dev_str = f"Backend: {Boids.get_default_device_name()}"
+            dev_surf = sub_font.render(dev_str, True, (100, 220, 100))
+            dev_rect = dev_surf.get_rect(center=(stage.WIDTH//2, stage.HEIGHT//2 - 95))
+            stage.screen.blit(dev_surf, dev_rect)
+            
             input_box.draw(stage.screen)
             start_btn.draw(stage.screen)
             
-            pygame.display.flip()
+            stage.show("Boids Simulation - Menu")
             
         elif current_state == STATE_SIMULATION:
             # Update Boid Parameters from Sliders
@@ -122,7 +128,9 @@ def main() -> None:
                 slider_fps.draw(stage.screen)
                 back_btn.draw(stage.screen)
                 
-                stage.show("Boids Algorithm") # This flips display
+                # Show live FPS in title
+                fps_val = stage.clock.get_fps()
+                stage.show(f"Boids Algorithm - {fps_val:.1f} FPS [{boids.device_name}]")
                 
                 # Cap FPS
                 stage.clock.tick(int(slider_fps.get_value()))

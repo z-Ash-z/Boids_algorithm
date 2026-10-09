@@ -38,20 +38,18 @@ class Button(UIElement):
         screen.blit(txt_surf, text_rect)
 
 class Slider(UIElement):
-    def __init__(self, x, y, w, h, min_val, max_val, initial_val, label):
+    def __init__(self, x, y, w, h, min_val, max_val, initial_val, label, is_int: bool = False):
         super().__init__(x, y, w, h, font_size=20)
         self.min_val = min_val
         self.max_val = max_val
-        self.val = initial_val
+        self.is_int = is_int
+        self.val = int(round(initial_val)) if is_int else initial_val
         self.label = label
         self.dragging = False
-        
-        # Handle width/height: h is mostly for the track thickness? 
-        # Let's make h the hit area height, but draw a thin line.
         self.handle_radius = h // 2
         
     def get_value(self):
-        return self.val
+        return int(self.val) if self.is_int else self.val
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -70,11 +68,16 @@ class Slider(UIElement):
         # Normalize to 0-1
         ratio = (x - self.rect.left) / self.rect.width
         # Map to value
-        self.val = self.min_val + ratio * (self.max_val - self.min_val)
+        val = self.min_val + ratio * (self.max_val - self.min_val)
+        if self.is_int:
+            self.val = int(round(val))
+        else:
+            self.val = val
 
     def draw(self, screen):
         # Draw Label
-        label_surf = self.font.render(f"{self.label}: {self.val:.3f}", True, (255, 255, 255))
+        val_str = f"{int(self.val)}" if self.is_int else f"{self.val:.3f}"
+        label_surf = self.font.render(f"{self.label}: {val_str}", True, (255, 255, 255))
         screen.blit(label_surf, (self.rect.x, self.rect.y - 20))
         
         # Draw Track
