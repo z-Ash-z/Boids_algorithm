@@ -44,9 +44,9 @@ class Boids:
         self.COHESION_RADIUS = 150.0
         self.SEPERATION_RADIUS = 32.0
         
-        self.MAX_ALIGNMENT_FORCE = 0.045
-        self.MAX_COHESION_FORCE = 0.03
-        self.MAX_SEPERATION_FORCE = 0.20
+        self.MAX_ALIGNMENT_FORCE = 0.015
+        self.MAX_COHESION_FORCE = 0.030
+        self.MAX_SEPERATION_FORCE = 0.050
         
         # Aerodynamic speed limits
         self.MIN_SPEED = 1.5
